@@ -310,8 +310,8 @@ state['templates']['rss'] = {
 }
 state['templates']['error'] = {
 'content_type': 'text/html',
-'head': '<html><body><p><font color="red">Error: I\'m afraid this is the first I\'ve heard of a "%(flavor)s" flavoured Blosxom.  Try dropping the "/+%(flavor)s" bit from the end of the URL.</font>\n\n',
-'story': '<p><b>%(title)s</b><br />%(body)s <a href="%(url)s/%(year)s/%(month)02d/%(day)02d#%(file)s.%(default_flavour)s">#</a></p>\n',
+'head': '<html><body><p><font color="red">Error: I\'m afraid this is the first I\'ve heard of a "%(flavor)s" flavored Blosxom.  Try dropping the "/+%(flavor)s" bit from the end of the URL.</font>\n\n',
+'story': '<p><b>%(title)s</b><br />%(body)s <a href="%(url)s/%(year)s/%(month)02d/%(day)02d#%(file)s.%(default_flavor)s">#</a></p>\n',
 'date': '<h3>%(wday_name)s, %(day)s %(month)s %(year)s</h3>\n',
 'foot': '</body></html>'
 }
