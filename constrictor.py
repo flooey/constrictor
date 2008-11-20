@@ -43,18 +43,13 @@ def get_path():
         return [];
     return [x for x in path.split('/') if x != ''];
 
-def plugin_callback(name, mode, *args):
-    destargs = [state] + [x for x in args]
+def plugin_callback(name, return_on_true):
     retval = None
-    if mode == 2:
-        retval = args[0]
     for p in state['plugins']:
         if hasattr(p, name):
-            retval = apply(getattr(p, name), destargs)
-            if mode == 1 and retval:
+            retval = apply(getattr(p, name), [state])
+            if return_on_true and retval:
                 return retval
-            if mode == 2:
-                destargs[1] = retval
     return retval
 
 def default_template(state, path, chunk, flavor):
@@ -153,14 +148,14 @@ def main():
     state['category'] = path
 
     global template
-    template = plugin_callback('template', 1) or default_template
+    template = plugin_callback('template', True) or default_template
 
     global entries
-    entries = plugin_callback('entries', 1) or default_entries
+    entries = plugin_callback('entries', True) or default_entries
 
     state['files'], state['indexes'], state['others'] = entries(state)
 
-    plugin_callback('filter', 0)
+    plugin_callback('filter', False)
 
     if state['static']:
         print "Generating static index pages..."
@@ -182,7 +177,9 @@ def main():
                     state['content_type'] = template(state, p.split('/'), 'content_type', state['flavor']).split('\n')[0]
                     file = p.endswith('.' + state['file_extension']) and p[:-4] or join(p, 'index')
                     if state['indexes'][path] is True:
-                        data = generate(p.split('/'), ['','',''])
+                        state['category'] = p.split('/')
+                        state['path_date'] = ['','','']
+                        data = generate()
                     else:
                         date = p.split('/')
                         for i in range(3):
@@ -190,7 +187,9 @@ def main():
                                 date[i] = int(date[i])
                             else:
                                 date.append('')
-                        data = generate([], date)
+                        state['category'] = []
+                        state['path_date'] = date
+                        data = generate()
                     if data:
                         print file + '.' + flavor
                         output = open(join(state['static_dir'], file + '.' + flavor), 'w')
@@ -201,36 +200,37 @@ def main():
     else:
         state['content_type'] = template(state, state['category'], 'content_type', state['flavor']).split('\n')[0]
         state['header'] = "Content-Type: " + state['content_type']
-        content = generate(state['category'],
-                           (state['path_year'], state['path_month'], state['path_day']))
+        state['path_date'] = (state['path_year'], state['path_month'], state['path_day'])
+        content = generate()
+                           
         if content:
             print state['header']
             print
             print content
 
-def generate(currentdir, date):
-    if plugin_callback('skip', 1, currentdir, date):
+def generate():
+    if plugin_callback('skip', True):
         return ''
 
-    interpolate = plugin_callback('interpolate', 1) or default_interpolate
+    interpolate = plugin_callback('interpolate', True) or default_interpolate
 
-    head = template(state, currentdir, 'head', state['flavor'])
-    head = plugin_callback('head', 2, head, currentdir)
-    head = interpolate(state, head)
+    state['head_template'] = template(state, state['category'], 'head', state['flavor'])
+    plugin_callback('head', False)
+    head = interpolate(state, state['head_template'])
 
-    output = []
-    output.append(head)
+    state['output'] = []
+    state['output'].append(head)
 
     files_to_parse = state['files']
     
-    if currentdir:
-        path = join(state['datadir'], *currentdir)
-        if re.match(r'(.+)\.' + state['file_extension'], currentdir[-1]) and state['files'].has_key(path):
+    if state['category']:
+        path = join(state['datadir'], *state['category'])
+        if re.match(r'(.+)\.' + state['file_extension'], state['category'][-1]) and state['files'].has_key(path):
             files_to_parse = { path : state['files'][path] }
 
     entries_left = state['num_entries']
 
-    sort = plugin_callback('sort', 1) or default_sort
+    sort = plugin_callback('sort', True) or default_sort
 
     curdate = None
 
@@ -241,58 +241,58 @@ def generate(currentdir, date):
         state['path'], state['file'] = m.group(1) or '', m.group(2)
 
         # Skip entries not on the proper path
-        if not state['path'].startswith(join('', *currentdir)) and not f == join(state['datadir'], *currentdir):
+        if not state['path'].startswith(join('', *state['category'])) and not f == join(state['datadir'], *state['category']):
             continue
         state['path'] = state['path'] and ('/' + state['path'])
 
         mdate = localtime(state['files'][f])
-        if date[0] and mdate[0] != date[0]:
+        if state['path_date'][0] and mdate[0] != state['path_date'][0]:
             continue
-        if date[1] and mdate[1] != date[1]:
+        if state['path_date'][1] and mdate[1] != state['path_date'][1]:
             continue
-        if date[2] and mdate[2] != date[2]:
+        if state['path_date'][2] and mdate[2] != state['path_date'][2]:
             continue
         state['year'], state['month'], state['day'], state['hour'], state['min'], state['sec'], state['wday'], state['yday'], state['isdst'] = mdate
         state['month_name'], state['wday_name'] = strftime("%b", mdate), strftime("%a", mdate)
-        datetext = template(state, currentdir, 'date', state['flavor'])
+        state['date_template'] = template(state, state['category'], 'date', state['flavor'])
         
-        datetext = plugin_callback('date', 2, datetext, currentdir, mdate)
+        plugin_callback('date', False)
 
-        datetext = interpolate(state, datetext)
+        datetext = interpolate(state, state['date_template'])
 
         if curdate != datetext:
             curdate = datetext
-            output.append(datetext)
+            state['output'].append(datetext)
 
         text = open(f)
         state['title'] = text.readline()[:-1]
         state['body'] = text.read()
         text.close()
-        story = template(state, currentdir, 'story', state['flavor'])
+        state['story_template'] = template(state, state['category'], 'story', state['flavor'])
         
-        story = plugin_callback('story', 2, story, currentdir)
+        plugin_callback('story', 2)
 
         if state['content_type'].find('xml') > -1:
             state['title'] = escape(state['title'])
             state['body'] = escape(state['body'])
 
-        story = interpolate(state, story)
+        story = interpolate(state, state['story_template'])
 
-        output.append(story)
+        state['output'].append(story)
 
         entries_left -= 1
 
-    foot = template(state, currentdir, 'foot', state['flavor'])
+    state['foot_template'] = template(state, state['category'], 'foot', state['flavor'])
     
-    foot = plugin_callback('foot', 2, foot)
+    plugin_callback('foot', False)
 
-    foot = interpolate(state, foot)
-    output.append(foot)
+    foot = interpolate(state, state['foot_template'])
+    state['output'].append(foot)
 
-    output = plugin_callback('last', 2, output)
+    plugin_callback('last', False)
 
-    return ''.join(output)
-        
+    return ''.join(state['output'])
+
 if __name__ == '__main__':
     main()
 
