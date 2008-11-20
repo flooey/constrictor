@@ -58,7 +58,10 @@ def default_template(state, path, chunk, flavor):
         targetpath = join(basedir, *(path[:i] + [chunk + '.' + flavor]))
         if os.path.exists(targetpath):
             return open(targetpath).read()
-    return state['templates'][flavor][chunk] or state['templates']['error'][chunk] or ''
+    if state['templates'].has_key(flavor):
+        return state['templates'][flavor][chunk]
+    else:
+        return state['templates']['error'][chunk]
 
 def default_interpolate(state, data):
     return data % state
