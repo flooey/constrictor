@@ -8,19 +8,19 @@ from xml.sax.saxutils import escape
 DEBUG = False
 
 state = dict(
-    blog_title = "flooey.org",
-    blog_description = "Flooey's blog",
+    blog_title = "My Weblog",
+    blog_description = "One of the few constrictor blogs.",
     blog_language = "en",
-    datadir = "/home/flooey/blog/documents",
-    url = "/",
+    datadir = "/Library/WebServer/Documents/constrictor",
+    url = "",
     depth = 0,
     num_entries = 40,
     file_extension = "txt",
     default_flavor = "html",
     show_future_entries = False,
-    plugin_dir = "/home/flooey/blog/plugins",
-    plugin_state_dir = "/home/flooey/blog/plugins/state",
-    static_dir = "/home/flooey/blog/static",
+    plugin_dir = "",
+    plugin_state_dir = "",
+    static_dir = "/Library/WebServer/Documents/blog",
     static_password = "",
     static_flavors = ["html", "rss"],
     static_entries = True
