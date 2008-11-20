@@ -178,7 +178,7 @@ def main():
                     file = p.endswith('.' + state['file_extension']) and p[:-4] or join(p, 'index')
                     if state['indexes'][path] is True:
                         state['category'] = p.split('/')
-                        state['path_date'] = ['','','']
+                        state['path_year'], state['path_month'], state['path_day'] = '', '', ''
                         data = generate()
                     else:
                         date = p.split('/')
@@ -188,7 +188,7 @@ def main():
                             else:
                                 date.append('')
                         state['category'] = []
-                        state['path_date'] = date
+                        state['path_year'], state['path_month'], state['path_day'] = date
                         data = generate()
                     if data:
                         print file + '.' + flavor
@@ -200,7 +200,6 @@ def main():
     else:
         state['content_type'] = template(state, state['category'], 'content_type', state['flavor']).split('\n')[0]
         state['header'] = "Content-Type: " + state['content_type']
-        state['path_date'] = (state['path_year'], state['path_month'], state['path_day'])
         content = generate()
                            
         if content:
@@ -246,11 +245,11 @@ def generate():
         state['path'] = state['path'] and ('/' + state['path'])
 
         mdate = localtime(state['files'][f])
-        if state['path_date'][0] and mdate[0] != state['path_date'][0]:
+        if state['path_year'] and mdate[0] != state['path_year']:
             continue
-        if state['path_date'][1] and mdate[1] != state['path_date'][1]:
+        if state['path_month'] and mdate[1] != state['path_month']:
             continue
-        if state['path_date'][2] and mdate[2] != state['path_date'][2]:
+        if state['path_day'] and mdate[2] != state['path_day']:
             continue
         state['year'], state['month'], state['day'], state['hour'], state['min'], state['sec'], state['wday'], state['yday'], state['isdst'] = mdate
         state['month_name'], state['wday_name'] = strftime("%b", mdate), strftime("%a", mdate)
@@ -270,7 +269,7 @@ def generate():
         text.close()
         state['story_template'] = template(state, state['category'], 'story', state['flavor'])
         
-        plugin_callback('story', 2)
+        plugin_callback('story', False)
 
         if state['content_type'].find('xml') > -1:
             state['title'] = escape(state['title'])
