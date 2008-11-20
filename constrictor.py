@@ -5,8 +5,6 @@ from os.path import join
 from time import time, localtime, strftime
 from xml.sax.saxutils import escape
 
-DEBUG = False
-
 state = dict(
     blog_title = "My Weblog",
     blog_description = "One of the few constrictor blogs.",
@@ -101,10 +99,6 @@ def default_entries(state):
     return files, indexes, others
 
 def main():
-    if DEBUG:
-        print "Content-type: text/plain"
-        print
-    
     if state['plugin_dir']:
         state['plugins'] = load_plugins(state['plugin_dir'])
     else:
