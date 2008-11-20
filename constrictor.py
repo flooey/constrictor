@@ -178,11 +178,11 @@ def main():
                     finished.append(p)
                 if not p.endswith('.' + state['file_extension']) and not os.path.exists(join(state['static_dir'], p)):
                     os.mkdir(join(state['static_dir'], p), 0755)
-                for flavor in state['static_flavors']:
-                    content_type = template(state, p.split('/'), 'content_type', flavor).split('\n')[0]
+                for state['flavor'] in state['static_flavors']:
+                    state['content_type'] = template(state, p.split('/'), 'content_type', state['flavor']).split('\n')[0]
                     file = p.endswith('.' + state['file_extension']) and p[:-4] or join(p, 'index')
                     if state['indexes'][path] is True:
-                        data = generate(p.split('/'), ['','',''], flavor, content_type)
+                        data = generate(p.split('/'), ['','',''])
                     else:
                         date = p.split('/')
                         for i in range(3):
@@ -190,7 +190,7 @@ def main():
                                 date[i] = int(date[i])
                             else:
                                 date.append('')
-                        data = generate([], date, flavor, content_type)
+                        data = generate([], date)
                     if data:
                         print file + '.' + flavor
                         output = open(join(state['static_dir'], file + '.' + flavor), 'w')
@@ -199,24 +199,22 @@ def main():
                         output.write(data)
                         output.close()
     else:
-        content_type = template(state, state['category'], 'content_type', state['flavor']).split('\n')[0]
-        state['header'] = "Content-Type: " + content_type
+        state['content_type'] = template(state, state['category'], 'content_type', state['flavor']).split('\n')[0]
+        state['header'] = "Content-Type: " + state['content_type']
         content = generate(state['category'],
-                           (state['path_year'], state['path_month'], state['path_day']),
-                           state['flavor'],
-                           content_type)
+                           (state['path_year'], state['path_month'], state['path_day']))
         if content:
             print state['header']
             print
             print content
 
-def generate(currentdir, date, flavor, content_type):
+def generate(currentdir, date):
     if plugin_callback('skip', 1, currentdir, date):
         return ''
 
     interpolate = plugin_callback('interpolate', 1) or default_interpolate
 
-    head = template(state, currentdir, 'head', flavor)
+    head = template(state, currentdir, 'head', state['flavor'])
     head = plugin_callback('head', 2, head, currentdir)
     head = interpolate(state, head)
 
@@ -256,7 +254,7 @@ def generate(currentdir, date, flavor, content_type):
             continue
         state['year'], state['month'], state['day'], state['hour'], state['min'], state['sec'], state['wday'], state['yday'], state['isdst'] = mdate
         state['month_name'], state['wday_name'] = strftime("%b", mdate), strftime("%a", mdate)
-        datetext = template(state, currentdir, 'date', flavor)
+        datetext = template(state, currentdir, 'date', state['flavor'])
         
         datetext = plugin_callback('date', 2, datetext, currentdir, mdate)
 
@@ -270,11 +268,11 @@ def generate(currentdir, date, flavor, content_type):
         state['title'] = text.readline()[:-1]
         state['body'] = text.read()
         text.close()
-        story = template(state, currentdir, 'story', flavor)
+        story = template(state, currentdir, 'story', state['flavor'])
         
         story = plugin_callback('story', 2, story, currentdir)
 
-        if content_type.find('xml') > -1:
+        if state['content_type'].find('xml') > -1:
             state['title'] = escape(state['title'])
             state['body'] = escape(state['body'])
 
@@ -284,7 +282,7 @@ def generate(currentdir, date, flavor, content_type):
 
         entries_left -= 1
 
-    foot = template(state, currentdir, 'foot', flavor)
+    foot = template(state, currentdir, 'foot', state['flavor'])
     
     foot = plugin_callback('foot', 2, foot)
 
