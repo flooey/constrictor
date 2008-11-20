@@ -296,7 +296,7 @@ def generate():
 state['templates'] = {}
 state['templates']['html'] = {
 'content_type': 'text/html',
-'head': '<html><head><link rel="alternate" type="application/rss+xml" title="RSS" href="%(url)s/index.rss" /><title>%(blog_title)s %(path_info_da)s %(path_info_mo)s %(path_info_yr)s</title></head><body><center><font size="+3">%(blog_title)s</font><br />%(path_info_da)s %(path_info_mo)s %(path_info_yr)s</center><p />',
+'head': '<html><head><link rel="alternate" type="application/rss+xml" title="RSS" href="%(url)s/index.rss" /><title>%(blog_title)s %(path_day)s %(path_month)s %(path_year)s</title></head><body><center><font size="+3">%(blog_title)s</font><br />%(path_day)s %(path_month)s %(path_year)s</center><p />',
 'story': '<p><a name="%(file)s"><b>%(title)s</b></a><br />%(body)s<br /><br />posted at: %(hour)02d:%(min)02d | path: <a href="%(url)s%(path)s">%(path)</a> | <a href="%(url)s/%(year)s/%(month)s/%(day)s#%(file)s">permanent link to this entry</a></p>\n',
 'date': '<h3>%(wday_name)s, %(day)s %(month)s %(year)s</h3>\n',
 'foot': '<p /><center><a href="http://www.blosxom.com/"><img src="http://www.blosxom.com/images/pb_blosxom.gif" border="0" /></a></body></html>'
