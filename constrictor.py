@@ -78,7 +78,7 @@ def default_entries(state):
         subdir = dir[len(state['datadir']) + 1:]
         for f in filelist:
             mtime = os.stat(join(dir, f)).st_mtime
-            if (re.match(r'(.+)\.' + state['file_extension'], f) 
+            if (re.match(r'(.+)\.' + state['file_extension'] + '$', f) 
                 and not f.startswith("index") 
                 and not f.startswith('.')):
 
@@ -117,7 +117,7 @@ def main():
 
     path = get_path()
     
-    date = [x for x in path if re.match("[0-9].*", x)]
+    date = [x for x in path if re.match("[0-9]", x)]
     if len(date) > 0:
         state['path_year'] = int(date[0])
     else:
@@ -133,7 +133,7 @@ def main():
 
     state['flavor'] = state['default_flavor']
 
-    path = [x for x in path if not re.match("[0-9].*", x)]
+    path = [x for x in path if not re.match("[0-9]", x)]
     if len(path) > 0:
         m = re.match(r'(.+)\.(.+)$', path[-1])
         if m:
@@ -225,7 +225,7 @@ def generate():
     
     if state['category']:
         path = join(state['datadir'], *state['category'])
-        if re.match(r'(.+)\.' + state['file_extension'], state['category'][-1]) and state['files'].has_key(path):
+        if re.match(r'(.+)\.' + state['file_extension'] + '$', state['category'][-1]) and state['files'].has_key(path):
             files_to_parse = { path : state['files'][path] }
 
     entries_left = state['num_entries']
@@ -237,7 +237,7 @@ def generate():
     for f in sort(state, files_to_parse):
         if entries_left <= 0:
             break
-        m = re.match(state['datadir'] + r'/(?:(.*)/)?(.+)\.' + state['file_extension'], f)
+        m = re.match(state['datadir'] + r'/(?:(.*)/)?(.+)\.' + state['file_extension'] + '$', f)
         state['path'], state['file'] = m.group(1) or '', m.group(2)
 
         # Skip entries not on the proper path
