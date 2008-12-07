@@ -218,8 +218,7 @@ def generate():
     plugin_callback('head', False)
     head = interpolate(state, state['head_template'])
 
-    state['output'] = []
-    state['output'].append(head)
+    state['output'] = head
 
     files_to_parse = state['files']
     
@@ -262,7 +261,7 @@ def generate():
 
         if curdate != datetext:
             curdate = datetext
-            state['output'].append(datetext)
+            state['output'] += datetext
 
         text = open(f)
         state['title'] = text.readline()[:-1]
@@ -278,7 +277,7 @@ def generate():
 
         story = interpolate(state, state['story_template'])
 
-        state['output'].append(story)
+        state['output'] += story
 
         entries_left -= 1
 
@@ -287,11 +286,11 @@ def generate():
     plugin_callback('foot', False)
 
     foot = interpolate(state, state['foot_template'])
-    state['output'].append(foot)
+    state['output'] += foot
 
     plugin_callback('last', False)
 
-    return ''.join(state['output'])
+    return state['output']
 
 state['templates'] = {}
 state['templates']['html'] = {
