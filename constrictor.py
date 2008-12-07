@@ -77,23 +77,26 @@ def default_entries(state):
     for dir, dirs, filelist in os.walk(state['datadir']):
         subdir = dir[len(state['datadir']) + 1:]
         for f in filelist:
-            mtime = os.stat(join(dir, f)).st_mtime
-            if (re.match(r'(.+)\.' + state['file_extension'] + '$', f) 
-                and not f.startswith("index") 
-                and not f.startswith('.')):
+            try:
+                mtime = os.stat(join(dir, f)).st_mtime
+                if (re.match(r'(.+)\.' + state['file_extension'] + '$', f) 
+                    and not f.startswith("index") 
+                    and not f.startswith('.')):
 
-                if not state['show_future_entries'] and mtime > time():
-                    continue
-                files[join(dir, f)] = mtime
-                ifile = join(state['static_dir'], subdir, 'index.' + state['static_flavors'][0])
-                if state['-all'] or not os.path.exists(ifile) or os.stat(ifile).st_mtime < mtime:
-                    indexes[subdir] = True
-                    d = strftime("%Y/%m/%d", localtime(mtime))
-                    indexes[d] = d
-                    if state['static_entries']:
-                        indexes[(subdir and subdir + '/' or '') + f] = True
-            else:
-                others[join(dir, f)] = mtime
+                    if not state['show_future_entries'] and mtime > time():
+                        continue
+                    files[join(dir, f)] = mtime
+                    ifile = join(state['static_dir'], subdir, 'index.' + state['static_flavors'][0])
+                    if state['-all'] or not os.path.exists(ifile) or os.stat(ifile).st_mtime < mtime:
+                        indexes[subdir] = True
+                        d = strftime("%Y/%m/%d", localtime(mtime))
+                        indexes[d] = d
+                        if state['static_entries']:
+                            indexes[(subdir and subdir + '/' or '') + f] = True
+                else:
+                    others[join(dir, f)] = mtime
+            except OSError:
+                # Ignore and proceed to next file
     return files, indexes, others
 
 def main():
