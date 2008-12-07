@@ -97,6 +97,7 @@ def default_entries(state):
                     others[join(dir, f)] = mtime
             except OSError:
                 # Ignore and proceed to next file
+                pass
     return files, indexes, others
 
 def main():
